@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.jobtrackr.backend.application.model.JobApplication;
+import com.jobtrackr.backend.application.dto.CreateJobApplicationRequest;
+import com.jobtrackr.backend.application.dto.JobApplicationResponse;
 import com.jobtrackr.backend.application.service.JobApplicationService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/applications")
@@ -26,14 +29,15 @@ public class JobApplicationController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public JobApplication create(
-            @RequestBody JobApplication application) {
+    public JobApplicationResponse create(
+            @Valid
+            @RequestBody CreateJobApplicationRequest request) {
 
-        return service.create(application);
+        return service.create(request);
     }
 
     @GetMapping
-    public List<JobApplication> findAll() {
+    public List<JobApplicationResponse> findAll() {
         return service.findAll();
     }
 }

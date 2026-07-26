@@ -1,13 +1,15 @@
 package com.jobtrackr.backend.application.service;
 
-import com.jobtrackr.backend.application.model.ApplicationPriority;
-import com.jobtrackr.backend.application.model.ApplicationStatus;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.jobtrackr.backend.application.dto.CreateJobApplicationRequest;
+import com.jobtrackr.backend.application.dto.JobApplicationResponse;
+import com.jobtrackr.backend.application.mapper.JobApplicationMapper;
+import com.jobtrackr.backend.application.model.ApplicationPriority;
+import com.jobtrackr.backend.application.model.ApplicationStatus;
 import com.jobtrackr.backend.application.model.JobApplication;
 import com.jobtrackr.backend.application.repository.JobApplicationRepository;
 
@@ -15,14 +17,21 @@ import com.jobtrackr.backend.application.repository.JobApplicationRepository;
 public class JobApplicationService {
 
     private final JobApplicationRepository repository;
+    private final JobApplicationMapper mapper;
 
     public JobApplicationService(
-            JobApplicationRepository repository) {
+            JobApplicationRepository repository,
+            JobApplicationMapper mapper) {
+
         this.repository = repository;
+        this.mapper = mapper;
     }
 
-    public JobApplication create(
-            JobApplication application) {
+    public JobApplicationResponse create(
+            CreateJobApplicationRequest request) {
+
+        JobApplication application =
+                mapper.toDocument(request);
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -38,10 +47,16 @@ public class JobApplicationService {
             application.setPriority(ApplicationPriority.MEDIUM);
         }
 
-        return repository.save(application);
+        JobApplication savedApplication =
+                repository.save(application);
+
+        return mapper.toResponse(savedApplication);
     }
 
-    public List<JobApplication> findAll() {
-        return repository.findAll();
+    public List<JobApplicationResponse> findAll() {
+        return repository.findAll()
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
     }
 }
