@@ -8,6 +8,7 @@ import com.jobtrackr.backend.application.dto.CreateJobApplicationRequest;
 import com.jobtrackr.backend.application.dto.JobApplicationResponse;
 import com.jobtrackr.backend.application.model.JobApplication;
 
+import com.jobtrackr.backend.application.dto.UpdateJobApplicationRequest;
 @Component
 public class JobApplicationMapper {
 
@@ -63,5 +64,26 @@ public class JobApplicationMapper {
         response.setUpdatedAt(application.getUpdatedAt());
 
         return response;
+    }
+    public void updateDocument(
+        UpdateJobApplicationRequest request,
+        JobApplication application) {
+
+        application.setCompanyName(request.getCompanyName());
+        application.setJobTitle(request.getJobTitle());
+        application.setLocation(request.getLocation());
+        application.setJobUrl(request.getJobUrl());
+        application.setStatus(request.getStatus());
+        application.setPriority(request.getPriority());
+            
+        if (request.getSkills() == null) {
+            application.setSkills(new ArrayList<>());
+        } else {
+            application.setSkills(
+                    new ArrayList<>(request.getSkills()));
+        }
+    
+        application.setAppliedDate(request.getAppliedDate());
+        application.setDeadline(request.getDeadline());
     }
 }

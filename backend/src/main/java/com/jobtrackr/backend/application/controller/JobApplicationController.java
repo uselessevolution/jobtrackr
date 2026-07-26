@@ -16,6 +16,12 @@ import com.jobtrackr.backend.application.service.JobApplicationService;
 
 import jakarta.validation.Valid;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+
+import com.jobtrackr.backend.application.dto.UpdateJobApplicationRequest;
+
 @RestController
 @RequestMapping("/api/applications")
 public class JobApplicationController {
@@ -39,5 +45,26 @@ public class JobApplicationController {
     @GetMapping
     public List<JobApplicationResponse> findAll() {
         return service.findAll();
+    }
+    @GetMapping("/{id}")
+    public JobApplicationResponse findById(
+            @PathVariable String id) {
+
+        return service.findById(id);
+    }
+    @PutMapping("/{id}")
+    public JobApplicationResponse update(
+            @PathVariable String id,
+            @Valid
+            @RequestBody UpdateJobApplicationRequest request) {
+
+        return service.update(id, request);
+    }
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(
+            @PathVariable String id) {
+
+        service.delete(id);
     }
 }

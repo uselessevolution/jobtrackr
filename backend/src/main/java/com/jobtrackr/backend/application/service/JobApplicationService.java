@@ -12,6 +12,8 @@ import com.jobtrackr.backend.application.model.ApplicationPriority;
 import com.jobtrackr.backend.application.model.ApplicationStatus;
 import com.jobtrackr.backend.application.model.JobApplication;
 import com.jobtrackr.backend.application.repository.JobApplicationRepository;
+import com.jobtrackr.backend.application.dto.UpdateJobApplicationRequest;
+import com.jobtrackr.backend.common.exception.ResourceNotFoundException;
 
 @Service
 public class JobApplicationService {
@@ -58,5 +60,55 @@ public class JobApplicationService {
                 .stream()
                 .map(mapper::toResponse)
                 .toList();
+    }
+    public JobApplicationResponse findById(String id) {
+
+        JobApplication application = repository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Job application not found with id: " + id
+                        )
+                );
+
+        return mapper.toResponse(application);
+    }
+    public JobApplicationResponse update(
+        String id,
+        UpdateJobApplicationRequest request) {
+
+        JobApplication existingApplication =
+                repository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Job application not found with id: " + id
+                                )
+                        );
+
+        mapper.updateDocument(request, existingApplication);
+
+        if (existingApplication.getStatus() == null) {
+            existingApplication.setStatus(ApplicationStatus.SAVED);
+        }
+
+        if (existingApplication.getPriority() == null) {
+            existingApplication.setPriority(ApplicationPriority.MEDIUM);
+        }
+
+        existingApplication.setUpdatedAt(LocalDateTime.now());
+
+        JobApplication savedApplication =
+                repository.save(existingApplication);
+
+        return mapper.toResponse(savedApplication);
+    }
+    public void delete(String id) {
+        
+        if (!repository.existsById(id)) {
+            throw new ResourceNotFoundException(
+                    "Job application not found with id: " + id
+            );
+        }
+    
+        repository.deleteById(id);
     }
 }
