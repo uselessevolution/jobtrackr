@@ -22,6 +22,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 import com.jobtrackr.backend.application.dto.UpdateJobApplicationRequest;
 
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.jobtrackr.backend.application.dto.PagedResponse;
+
 @RestController
 @RequestMapping("/api/applications")
 public class JobApplicationController {
@@ -43,8 +47,18 @@ public class JobApplicationController {
     }
 
     @GetMapping
-    public List<JobApplicationResponse> findAll() {
-        return service.findAll();
+    public PagedResponse<JobApplicationResponse> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "updatedAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        return service.findAll(
+                page,
+                size,
+                sortBy,
+                direction
+        );
     }
     @GetMapping("/{id}")
     public JobApplicationResponse findById(
