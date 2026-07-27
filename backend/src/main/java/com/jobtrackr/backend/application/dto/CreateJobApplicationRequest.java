@@ -10,35 +10,40 @@ import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 public class CreateJobApplicationRequest {
 
+    @Schema(description = "Name of the hiring company", example = "IBM")
     @NotBlank(message = "Company name is required")
-    @Size(max = 100, message = "Company name must not exceed 100 characters")
+    @Size(max = 100)
     private String companyName;
 
+    @Schema(description = "Title of the position", example = "Junior Java Developer")
     @NotBlank(message = "Job title is required")
-    @Size(max = 150, message = "Job title must not exceed 150 characters")
     private String jobTitle;
 
+    @Schema(description = "Job location", example = "Dublin")
     @Size(max = 100, message = "Location must not exceed 100 characters")
     private String location;
 
     @Size(max = 500, message = "Job URL must not exceed 500 characters")
     private String jobUrl;
 
+    @Schema(description = "Current stage of the job application", example = "APPLIED")
     private ApplicationStatus status;
 
+    @Schema(description = "User-assigned priority", example = "HIGH")
     private ApplicationPriority priority;
 
-    @Size(max = 30, message = "A job application cannot contain more than 30 skills")
-    private List<
-            @NotBlank(message = "Skill must not be blank")
-            @Size(max = 50, message = "Skill must not exceed 50 characters")
-            String> skills;
+    @Schema(description = "Skills associated with the role", example = "[\"Java\", \"Spring Boot\", \"MongoDB\"]")
+    private List<@NotBlank(message = "Skill must not be blank") @Size(max = 50, message = "Skill must not exceed 50 characters") String> skills;
 
+    @Schema(description = "Date the application was submitted", example = "2026-07-26")
     private LocalDate appliedDate;
 
     @FutureOrPresent(message = "Deadline must be today or in the future")
+    @Schema(description = "Application closing date", example = "2026-08-20")
     private LocalDate deadline;
 
     public CreateJobApplicationRequest() {
