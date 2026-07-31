@@ -9,8 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.jobtrackr.backend.user.dto.RegisterRequest;
 import com.jobtrackr.backend.user.dto.UserResponse;
+import com.jobtrackr.backend.user.service.AuthService;
 import com.jobtrackr.backend.user.service.UserService;
-
+import com.jobtrackr.backend.user.dto.AuthResponse;
+import com.jobtrackr.backend.user.dto.LoginRequest;
+import com.jobtrackr.backend.user.service.AuthService;
 import jakarta.validation.Valid;
 
 @RestController
@@ -18,17 +21,28 @@ import jakarta.validation.Valid;
 public class AuthController {
 
     private final UserService userService;
+    private final AuthService authService;
 
-    public AuthController(UserService userService) {
+    public AuthController(
+            UserService userService,
+            AuthService authService) {
+
         this.userService = userService;
+        this.authService = authService;
     }
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse register(
-            @Valid
-            @RequestBody RegisterRequest request) {
+            @Valid @RequestBody RegisterRequest request) {
 
         return userService.register(request);
+    }
+
+    @PostMapping("/login")
+    public AuthResponse login(
+            @Valid @RequestBody LoginRequest request) {
+
+        return authService.login(request);
     }
 }
