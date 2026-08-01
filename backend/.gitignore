@@ -34,3 +34,4 @@ build/
 
 # Local Java/JNA/Mockito temporary files
 backend/.tmp/
+.tmp/

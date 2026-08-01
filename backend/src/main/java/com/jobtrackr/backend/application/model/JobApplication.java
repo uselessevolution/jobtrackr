@@ -13,7 +13,7 @@ public class JobApplication {
 
     @Id
     private String id;
-
+    private String userId;
     private String companyName;
     private String jobTitle;
     private String location;
@@ -29,6 +29,14 @@ public class JobApplication {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
     public JobApplication() {
     }
