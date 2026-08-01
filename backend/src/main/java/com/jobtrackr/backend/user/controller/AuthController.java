@@ -13,7 +13,6 @@ import com.jobtrackr.backend.user.service.AuthService;
 import com.jobtrackr.backend.user.service.UserService;
 import com.jobtrackr.backend.user.dto.AuthResponse;
 import com.jobtrackr.backend.user.dto.LoginRequest;
-import com.jobtrackr.backend.user.service.AuthService;
 import jakarta.validation.Valid;
 
 @RestController
