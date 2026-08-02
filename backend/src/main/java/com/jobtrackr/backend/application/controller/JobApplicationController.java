@@ -26,6 +26,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
+import com.jobtrackr.backend.application.model.ApplicationPriority;
+import com.jobtrackr.backend.application.model.ApplicationStatus;
+
 @RestController
 @RequestMapping("/api/applications")
 @Tag(name = "Job Applications", description = "Create, retrieve, update and delete job applications")
@@ -53,14 +56,39 @@ public class JobApplicationController {
     }
 
     @GetMapping
-    @Operation(summary = "List job applications", description = "Returns a paginated and sorted list of job applications")
+    @Operation(summary = "Search job applications", description = """
+            Returns the authenticated user's job applications.
+            Supports keyword search, status and priority filtering,
+            pagination and sorting.
+            """)
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Job applications returned"),
+            @ApiResponse(responseCode = "400", description = "Invalid query parameter"),
+            @ApiResponse(responseCode = "401", description = "Authentication is required")
+    })
     public PagedResponse<JobApplicationResponse> findAll(
+            @RequestParam(required = false) String keyword,
+
+            @RequestParam(required = false) ApplicationStatus status,
+
+            @RequestParam(required = false) ApplicationPriority priority,
+
             @RequestParam(defaultValue = "0") int page,
+
             @RequestParam(defaultValue = "10") int size,
+
             @RequestParam(defaultValue = "updatedAt") String sortBy,
+
             @RequestParam(defaultValue = "desc") String direction) {
 
-        return service.findAll(page, size, sortBy, direction);
+        return service.findAll(
+                keyword,
+                status,
+                priority,
+                page,
+                size,
+                sortBy,
+                direction);
     }
 
     @GetMapping("/{id}")

@@ -85,6 +85,9 @@ public class JobApplicationService {
         }
 
         public PagedResponse<JobApplicationResponse> findAll(
+                        String keyword,
+                        ApplicationStatus status,
+                        ApplicationPriority priority,
                         int page,
                         int size,
                         String sortBy,
@@ -104,8 +107,11 @@ public class JobApplicationService {
 
                 String currentUserId = currentUserService.getCurrentUserId();
 
-                Page<JobApplication> applicationPage = repository.findAllByUserId(
+                Page<JobApplication> applicationPage = repository.search(
                                 currentUserId,
+                                normalizeKeyword(keyword),
+                                status,
+                                priority,
                                 pageable);
 
                 List<JobApplicationResponse> content = applicationPage.getContent()
@@ -270,5 +276,19 @@ public class JobApplicationService {
                                 changedAt);
 
                 application.getStatusHistory().add(history);
+        }
+
+        private String normalizeKeyword(
+                        String keyword) {
+
+                if (keyword == null) {
+                        return null;
+                }
+
+                String normalizedKeyword = keyword.trim();
+
+                return normalizedKeyword.isEmpty()
+                                ? null
+                                : normalizedKeyword;
         }
 }
