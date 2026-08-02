@@ -17,6 +17,7 @@ public class JobApplicationResponse {
     private ApplicationStatus status;
     private ApplicationPriority priority;
     private List<String> skills;
+    private List<StatusHistoryResponse> statusHistory;
     private LocalDate appliedDate;
     private LocalDate deadline;
     private LocalDateTime createdAt;
@@ -87,6 +88,16 @@ public class JobApplicationResponse {
 
     public void setSkills(List<String> skills) {
         this.skills = skills;
+    }
+
+    public List<StatusHistoryResponse> getStatusHistory() {
+        return statusHistory;
+    }
+
+    public void setStatusHistory(
+            List<StatusHistoryResponse> statusHistory) {
+
+        this.statusHistory = statusHistory;
     }
 
     public LocalDate getAppliedDate() {

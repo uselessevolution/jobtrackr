@@ -6,9 +6,11 @@ import org.springframework.stereotype.Component;
 
 import com.jobtrackr.backend.application.dto.CreateJobApplicationRequest;
 import com.jobtrackr.backend.application.dto.JobApplicationResponse;
+import com.jobtrackr.backend.application.dto.StatusHistoryResponse;
 import com.jobtrackr.backend.application.model.JobApplication;
 
 import com.jobtrackr.backend.application.dto.UpdateJobApplicationRequest;
+
 @Component
 public class JobApplicationMapper {
 
@@ -40,8 +42,7 @@ public class JobApplicationMapper {
     public JobApplicationResponse toResponse(
             JobApplication application) {
 
-        JobApplicationResponse response =
-                new JobApplicationResponse();
+        JobApplicationResponse response = new JobApplicationResponse();
 
         response.setId(application.getId());
         response.setCompanyName(application.getCompanyName());
@@ -58,6 +59,19 @@ public class JobApplicationMapper {
                     new ArrayList<>(application.getSkills()));
         }
 
+        if (application.getStatusHistory() == null) {
+            response.setStatusHistory(new ArrayList<>());
+        } else {
+            response.setStatusHistory(
+                    application.getStatusHistory()
+                            .stream()
+                            .map(history -> new StatusHistoryResponse(
+                                    history.getFromStatus(),
+                                    history.getToStatus(),
+                                    history.getChangedAt()))
+                            .toList());
+        }
+
         response.setAppliedDate(application.getAppliedDate());
         response.setDeadline(application.getDeadline());
         response.setCreatedAt(application.getCreatedAt());
@@ -65,9 +79,10 @@ public class JobApplicationMapper {
 
         return response;
     }
+
     public void updateDocument(
-        UpdateJobApplicationRequest request,
-        JobApplication application) {
+            UpdateJobApplicationRequest request,
+            JobApplication application) {
 
         application.setCompanyName(request.getCompanyName());
         application.setJobTitle(request.getJobTitle());
@@ -75,14 +90,14 @@ public class JobApplicationMapper {
         application.setJobUrl(request.getJobUrl());
         application.setStatus(request.getStatus());
         application.setPriority(request.getPriority());
-            
+
         if (request.getSkills() == null) {
             application.setSkills(new ArrayList<>());
         } else {
             application.setSkills(
                     new ArrayList<>(request.getSkills()));
         }
-    
+
         application.setAppliedDate(request.getAppliedDate());
         application.setDeadline(request.getDeadline());
     }
