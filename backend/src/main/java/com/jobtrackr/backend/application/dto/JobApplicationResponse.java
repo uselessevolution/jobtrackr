@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.jobtrackr.backend.application.model.ApplicationPriority;
 import com.jobtrackr.backend.application.model.ApplicationStatus;
-
+// import com.jobtrackr.backend.application.dto.InterviewResponse;
 public class JobApplicationResponse {
 
     private String id;
@@ -18,6 +18,7 @@ public class JobApplicationResponse {
     private ApplicationPriority priority;
     private List<String> skills;
     private List<StatusHistoryResponse> statusHistory;
+    private List<InterviewResponse> interviews;
     private LocalDate appliedDate;
     private LocalDate deadline;
     private LocalDateTime createdAt;
@@ -76,6 +77,16 @@ public class JobApplicationResponse {
 
     public ApplicationPriority getPriority() {
         return priority;
+    }
+
+    public List<InterviewResponse> getInterviews() {
+        return interviews;
+    }
+
+    public void setInterviews(
+            List<InterviewResponse> interviews) {
+
+        this.interviews = interviews;
     }
 
     public void setPriority(ApplicationPriority priority) {

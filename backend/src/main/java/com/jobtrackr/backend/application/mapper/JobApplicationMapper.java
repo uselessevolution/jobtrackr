@@ -14,6 +14,14 @@ import com.jobtrackr.backend.application.dto.UpdateJobApplicationRequest;
 @Component
 public class JobApplicationMapper {
 
+    private final InterviewMapper interviewMapper;
+
+    public JobApplicationMapper(
+            InterviewMapper interviewMapper) {
+
+        this.interviewMapper = interviewMapper;
+    }
+
     public JobApplication toDocument(
             CreateJobApplicationRequest request) {
 
@@ -71,7 +79,15 @@ public class JobApplicationMapper {
                                     history.getChangedAt()))
                             .toList());
         }
-
+        if (application.getInterviews() == null) {
+            response.setInterviews(new ArrayList<>());
+        } else {
+            response.setInterviews(
+                    application.getInterviews()
+                            .stream()
+                            .map(interviewMapper::toResponse)
+                            .toList());
+        }
         response.setAppliedDate(application.getAppliedDate());
         response.setDeadline(application.getDeadline());
         response.setCreatedAt(application.getCreatedAt());

@@ -25,6 +25,7 @@ public class JobApplication {
     private List<String> skills = new ArrayList<>();
 
     private List<StatusHistory> statusHistory = new ArrayList<>();
+    private List<Interview> interviews = new ArrayList<>();
     private LocalDate appliedDate;
     private LocalDate deadline;
 
@@ -114,6 +115,16 @@ public class JobApplication {
             List<StatusHistory> statusHistory) {
 
         this.statusHistory = statusHistory;
+    }
+
+    public List<Interview> getInterviews() {
+        return interviews;
+    }
+
+    public void setInterviews(
+            List<Interview> interviews) {
+
+        this.interviews = interviews;
     }
 
     public LocalDate getAppliedDate() {
