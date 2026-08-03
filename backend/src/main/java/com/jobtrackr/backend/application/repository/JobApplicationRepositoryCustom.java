@@ -1,5 +1,7 @@
 package com.jobtrackr.backend.application.repository;
 
+import java.time.LocalDate;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -14,5 +16,10 @@ public interface JobApplicationRepositoryCustom {
             String keyword,
             ApplicationStatus status,
             ApplicationPriority priority,
+            String skill,
+            LocalDate appliedFrom,
+            LocalDate appliedTo,
+            LocalDate deadlineFrom,
+            LocalDate deadlineTo,
             Pageable pageable);
 }

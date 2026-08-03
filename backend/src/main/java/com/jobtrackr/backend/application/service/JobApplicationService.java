@@ -25,6 +25,7 @@ import com.jobtrackr.backend.user.service.CurrentUserService;
 import java.util.ArrayList;
 import com.jobtrackr.backend.application.model.StatusHistory;
 import com.jobtrackr.backend.common.exception.InvalidStatusTransitionException;
+import java.time.LocalDate;
 
 @Service
 public class JobApplicationService {
@@ -88,6 +89,11 @@ public class JobApplicationService {
                         String keyword,
                         ApplicationStatus status,
                         ApplicationPriority priority,
+                        String skill,
+                        LocalDate appliedFrom,
+                        LocalDate appliedTo,
+                        LocalDate deadlineFrom,
+                        LocalDate deadlineTo,
                         int page,
                         int size,
                         String sortBy,
@@ -99,6 +105,16 @@ public class JobApplicationService {
                                 sortBy,
                                 direction);
 
+                validateDateRange(
+                                appliedFrom,
+                                appliedTo,
+                                "Applied date");
+
+                validateDateRange(
+                                deadlineFrom,
+                                deadlineTo,
+                                "Deadline");
+
                 Sort sort = direction.equalsIgnoreCase("asc")
                                 ? Sort.by(sortBy).ascending()
                                 : Sort.by(sortBy).descending();
@@ -109,9 +125,14 @@ public class JobApplicationService {
 
                 Page<JobApplication> applicationPage = repository.search(
                                 currentUserId,
-                                normalizeKeyword(keyword),
+                                normalizeText(keyword),
                                 status,
                                 priority,
+                                normalizeText(skill),
+                                appliedFrom,
+                                appliedTo,
+                                deadlineFrom,
+                                deadlineTo,
                                 pageable);
 
                 List<JobApplicationResponse> content = applicationPage.getContent()
@@ -278,17 +299,32 @@ public class JobApplicationService {
                 application.getStatusHistory().add(history);
         }
 
-        private String normalizeKeyword(
-                        String keyword) {
+        private String normalizeText(
+                        String value) {
 
-                if (keyword == null) {
+                if (value == null) {
                         return null;
                 }
 
-                String normalizedKeyword = keyword.trim();
+                String normalizedValue = value.trim();
 
-                return normalizedKeyword.isEmpty()
+                return normalizedValue.isEmpty()
                                 ? null
-                                : normalizedKeyword;
+                                : normalizedValue;
+        }
+
+        private void validateDateRange(
+                        LocalDate from,
+                        LocalDate to,
+                        String fieldLabel) {
+
+                if (from != null
+                                && to != null
+                                && from.isAfter(to)) {
+
+                        throw new IllegalArgumentException(
+                                        fieldLabel
+                                                        + " start date must not be after end date");
+                }
         }
 }
