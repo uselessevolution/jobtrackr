@@ -185,4 +185,22 @@ public class GlobalExceptionHandler {
                                 .status(HttpStatus.UNAUTHORIZED)
                                 .body(response);
         }
+
+        @ExceptionHandler(InvalidReminderStateException.class)
+        public ResponseEntity<ApiErrorResponse> handleInvalidReminderState(
+                        InvalidReminderStateException exception,
+                        HttpServletRequest request) {
+
+                ApiErrorResponse response = new ApiErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.CONFLICT.value(),
+                                "Conflict",
+                                exception.getMessage(),
+                                request.getRequestURI(),
+                                null);
+
+                return ResponseEntity
+                                .status(HttpStatus.CONFLICT)
+                                .body(response);
+        }
 }

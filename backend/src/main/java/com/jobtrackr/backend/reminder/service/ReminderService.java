@@ -22,18 +22,17 @@ import com.jobtrackr.backend.reminder.model.Reminder;
 import com.jobtrackr.backend.reminder.model.ReminderStatus;
 import com.jobtrackr.backend.reminder.repository.ReminderRepository;
 import com.jobtrackr.backend.user.service.CurrentUserService;
+import com.jobtrackr.backend.common.exception.InvalidReminderStateException;
 
 @Service
 public class ReminderService {
 
-    private static final Set<String> ALLOWED_SORT_FIELDS =
-            Set.of(
-                    "scheduledAt",
-                    "createdAt",
-                    "updatedAt",
-                    "type",
-                    "status"
-            );
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "scheduledAt",
+            "createdAt",
+            "updatedAt",
+            "type",
+            "status");
 
     private final ReminderRepository reminderRepository;
     private final JobApplicationRepository applicationRepository;
@@ -55,15 +54,13 @@ public class ReminderService {
     public ReminderResponse create(
             CreateReminderRequest request) {
 
-        String currentUserId =
-                currentUserService.getCurrentUserId();
+        String currentUserId = currentUserService.getCurrentUserId();
 
         verifyOwnedApplication(
                 request.getApplicationId(),
                 currentUserId);
 
-        Reminder reminder =
-                reminderMapper.toDocument(request);
+        Reminder reminder = reminderMapper.toDocument(request);
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -78,8 +75,7 @@ public class ReminderService {
             reminder.setChannels(new HashSet<>());
         }
 
-        Reminder savedReminder =
-                reminderRepository.save(reminder);
+        Reminder savedReminder = reminderRepository.save(reminder);
 
         return reminderMapper.toResponse(
                 savedReminder);
@@ -101,22 +97,18 @@ public class ReminderService {
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
 
-        Pageable pageable =
-                PageRequest.of(page, size, sort);
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        String currentUserId =
-                currentUserService.getCurrentUserId();
+        String currentUserId = currentUserService.getCurrentUserId();
 
-        Page<Reminder> reminderPage =
-                reminderRepository.findAllByUserId(
-                        currentUserId,
-                        pageable);
+        Page<Reminder> reminderPage = reminderRepository.findAllByUserId(
+                currentUserId,
+                pageable);
 
-        List<ReminderResponse> content =
-                reminderPage.getContent()
-                        .stream()
-                        .map(reminderMapper::toResponse)
-                        .toList();
+        List<ReminderResponse> content = reminderPage.getContent()
+                .stream()
+                .map(reminderMapper::toResponse)
+                .toList();
 
         return new PagedResponse<>(
                 content,
@@ -125,15 +117,13 @@ public class ReminderService {
                 reminderPage.getTotalElements(),
                 reminderPage.getTotalPages(),
                 reminderPage.isFirst(),
-                reminderPage.isLast()
-        );
+                reminderPage.isLast());
     }
 
     public ReminderResponse findById(
             String reminderId) {
 
-        Reminder reminder =
-                getOwnedReminder(reminderId);
+        Reminder reminder = getOwnedReminder(reminderId);
 
         return reminderMapper.toResponse(reminder);
     }
@@ -142,15 +132,14 @@ public class ReminderService {
             String reminderId,
             UpdateReminderRequest request) {
 
-        Reminder reminder =
-                getOwnedReminder(reminderId);
+        Reminder reminder = getOwnedReminder(reminderId);
 
-        if (reminder.getStatus()
-                != ReminderStatus.PENDING) {
+        ensurePendingReminder(
+                reminder,
+                "updated");
 
-            throw new IllegalStateException(
-                    "Only pending reminders can be updated");
-        }
+        validateScheduledAt(
+                request.getScheduledAt());
 
         reminderMapper.updateDocument(
                 request,
@@ -159,8 +148,7 @@ public class ReminderService {
         reminder.setUpdatedAt(
                 LocalDateTime.now());
 
-        Reminder savedReminder =
-                reminderRepository.save(reminder);
+        Reminder savedReminder = reminderRepository.save(reminder);
 
         return reminderMapper.toResponse(
                 savedReminder);
@@ -169,8 +157,7 @@ public class ReminderService {
     public void delete(
             String reminderId) {
 
-        Reminder reminder =
-                getOwnedReminder(reminderId);
+        Reminder reminder = getOwnedReminder(reminderId);
 
         reminderRepository.delete(reminder);
     }
@@ -178,28 +165,25 @@ public class ReminderService {
     private Reminder getOwnedReminder(
             String reminderId) {
 
-        String currentUserId =
-                currentUserService.getCurrentUserId();
+        String currentUserId = currentUserService.getCurrentUserId();
 
         return reminderRepository
                 .findByIdAndUserId(
                         reminderId,
                         currentUserId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Reminder not found with id: "
-                                        + reminderId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Reminder not found with id: "
+                                + reminderId));
     }
 
     private void verifyOwnedApplication(
             String applicationId,
             String currentUserId) {
 
-        boolean exists =
-                applicationRepository
-                        .existsByIdAndUserId(
-                                applicationId,
-                                currentUserId);
+        boolean exists = applicationRepository
+                .existsByIdAndUserId(
+                        applicationId,
+                        currentUserId);
 
         if (!exists) {
             throw new ResourceNotFoundException(
@@ -235,6 +219,98 @@ public class ReminderService {
 
             throw new IllegalArgumentException(
                     "Sort direction must be asc or desc");
+        }
+    }
+
+    public ReminderResponse cancel(
+            String reminderId) {
+
+        Reminder reminder = getOwnedReminder(reminderId);
+
+        ensurePendingReminder(
+                reminder,
+                "cancelled");
+
+        reminder.setStatus(
+                ReminderStatus.CANCELLED);
+
+        reminder.setUpdatedAt(
+                LocalDateTime.now());
+
+        Reminder savedReminder = reminderRepository.save(reminder);
+
+        return reminderMapper.toResponse(
+                savedReminder);
+    }
+
+    public ReminderResponse complete(
+            String reminderId) {
+
+        Reminder reminder = getOwnedReminder(reminderId);
+
+        ensurePendingReminder(
+                reminder,
+                "completed");
+
+        reminder.setStatus(
+                ReminderStatus.COMPLETED);
+
+        reminder.setUpdatedAt(
+                LocalDateTime.now());
+
+        Reminder savedReminder = reminderRepository.save(reminder);
+
+        return reminderMapper.toResponse(
+                savedReminder);
+    }
+
+    private void ensurePendingReminder(
+            Reminder reminder,
+            String requestedAction) {
+
+        if (reminder.getStatus() != ReminderStatus.PENDING) {
+
+            throw new InvalidReminderStateException(
+                    "Reminder cannot be "
+                            + requestedAction
+                            + " because its current status is "
+                            + reminder.getStatus());
+        }
+    }
+
+    public List<Reminder> findDuePendingReminders(
+            LocalDateTime now,
+            int limit) {
+
+        if (now == null) {
+            throw new IllegalArgumentException(
+                    "Current time is required");
+        }
+
+        if (limit < 1 || limit > 500) {
+            throw new IllegalArgumentException(
+                    "Reminder processing limit must be between 1 and 500");
+        }
+
+        Pageable pageable = PageRequest.of(
+                0,
+                limit,
+                Sort.by("scheduledAt").ascending());
+
+        return reminderRepository
+                .findByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAsc(
+                        ReminderStatus.PENDING,
+                        now,
+                        pageable);
+    }
+
+    private void validateScheduledAt(
+            LocalDateTime scheduledAt) {
+
+        if (!scheduledAt.isAfter(LocalDateTime.now())) {
+
+            throw new IllegalArgumentException(
+                    "Reminder scheduled time must be in the future");
         }
     }
 }
