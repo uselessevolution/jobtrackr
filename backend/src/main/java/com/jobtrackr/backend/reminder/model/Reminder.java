@@ -21,8 +21,7 @@ public class Reminder {
 
     private LocalDateTime scheduledAt;
 
-    private Set<ReminderChannel> channels =
-            new HashSet<>();
+    private Set<ReminderChannel> channels = new HashSet<>();
 
     private ReminderStatus status;
 
@@ -33,6 +32,7 @@ public class Reminder {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+    private LocalDateTime processingStartedAt;
 
     public Reminder() {
     }
@@ -135,5 +135,15 @@ public class Reminder {
             LocalDateTime updatedAt) {
 
         this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getProcessingStartedAt() {
+        return processingStartedAt;
+    }
+
+    public void setProcessingStartedAt(
+            LocalDateTime processingStartedAt) {
+
+        this.processingStartedAt = processingStartedAt;
     }
 }

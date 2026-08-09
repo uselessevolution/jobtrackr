@@ -29,6 +29,8 @@ public class ReminderResponse {
 
     private LocalDateTime updatedAt;
 
+    private LocalDateTime processingStartedAt;
+
     public ReminderResponse() {
     }
 
@@ -122,5 +124,15 @@ public class ReminderResponse {
             LocalDateTime updatedAt) {
 
         this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getProcessingStartedAt() {
+        return processingStartedAt;
+    }
+
+    public void setProcessingStartedAt(
+            LocalDateTime processingStartedAt) {
+
+        this.processingStartedAt = processingStartedAt;
     }
 }

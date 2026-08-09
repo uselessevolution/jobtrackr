@@ -6,35 +6,22 @@ import java.util.Set;
 import com.jobtrackr.backend.reminder.model.ReminderChannel;
 import com.jobtrackr.backend.reminder.model.ReminderType;
 
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class UpdateReminderRequest {
 
-    @NotNull(
-            message = "Reminder type is required"
-    )
+    @NotNull(message = "Reminder type is required")
     private ReminderType type;
 
-    @NotNull(
-            message = "Reminder scheduled time is required"
-    )
-    @Future(
-            message = "Reminder scheduled time must be in the future"
-    )
+    @NotNull(message = "Reminder scheduled time is required")
     private LocalDateTime scheduledAt;
 
-    @NotEmpty(
-            message = "At least one reminder channel is required"
-    )
+    @NotEmpty(message = "At least one reminder channel is required")
     private Set<ReminderChannel> channels;
 
-    @Size(
-            max = 1000,
-            message = "Reminder message must not exceed 1000 characters"
-    )
+    @Size(max = 1000, message = "Reminder message must not exceed 1000 characters")
     private String message;
 
     public ReminderType getType() {

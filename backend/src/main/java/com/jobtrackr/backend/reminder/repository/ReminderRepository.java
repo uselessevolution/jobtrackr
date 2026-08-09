@@ -12,18 +12,19 @@ import com.jobtrackr.backend.reminder.model.Reminder;
 import com.jobtrackr.backend.reminder.model.ReminderStatus;
 
 public interface ReminderRepository
-        extends MongoRepository<Reminder, String> {
+                extends MongoRepository<Reminder, String>,
+                ReminderClaimRepository {
 
-    Page<Reminder> findAllByUserId(
-            String userId,
-            Pageable pageable);
+        Page<Reminder> findAllByUserId(
+                        String userId,
+                        Pageable pageable);
 
-    Optional<Reminder> findByIdAndUserId(
-            String id,
-            String userId);
+        Optional<Reminder> findByIdAndUserId(
+                        String id,
+                        String userId);
 
-    List<Reminder> findByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAsc(
-            ReminderStatus status,
-            LocalDateTime scheduledAt,
-            Pageable pageable);
+        List<Reminder> findByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAsc(
+                        ReminderStatus status,
+                        LocalDateTime scheduledAt,
+                        Pageable pageable);
 }
