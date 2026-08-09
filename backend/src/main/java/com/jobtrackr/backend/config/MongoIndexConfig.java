@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.jobtrackr.backend.application.model.JobApplication;
 import com.jobtrackr.backend.reminder.model.Reminder;
+import com.jobtrackr.backend.notification.model.Notification;
 
 @Component
 public class MongoIndexConfig {
@@ -74,6 +75,7 @@ public class MongoIndexConfig {
                                                                 "idx_job_application_user_deadline"));
 
                 createReminderIndexes();
+                createNotificationIndexes();
         }
 
         private void createReminderIndexes() {
@@ -94,5 +96,33 @@ public class MongoIndexConfig {
                                                 .on(SCHEDULED_AT, Direction.ASC)
                                                 .named(
                                                                 "idx_reminder_status_scheduled_at"));
+        }
+
+        private void createNotificationIndexes() {
+
+                IndexOperations indexOperations = mongoTemplate.indexOps(
+                                Notification.class);
+
+                indexOperations.createIndex(
+                                new Index()
+                                                .on("userId", Direction.ASC)
+                                                .on("createdAt", Direction.DESC)
+                                                .named(
+                                                                "idx_notification_user_created_at"));
+
+                indexOperations.createIndex(
+                                new Index()
+                                                .on("userId", Direction.ASC)
+                                                .on("read", Direction.ASC)
+                                                .on("createdAt", Direction.DESC)
+                                                .named(
+                                                                "idx_notification_user_read_created_at"));
+
+                indexOperations.createIndex(
+                                new Index()
+                                                .on("reminderId", Direction.ASC)
+                                                .unique()
+                                                .named(
+                                                                "idx_notification_reminder_unique"));
         }
 }

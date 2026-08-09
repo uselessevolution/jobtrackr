@@ -4,19 +4,25 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
+import com.jobtrackr.backend.notification.service.NotificationService;
 import com.jobtrackr.backend.reminder.model.Reminder;
 import com.jobtrackr.backend.reminder.model.ReminderStatus;
 import com.jobtrackr.backend.reminder.repository.ReminderRepository;
+import com.jobtrackr.backend.notification.service.NotificationService;
 
 @Service
 public class ReminderProcessingService {
 
     private final ReminderRepository reminderRepository;
+    private final NotificationService notificationService;
 
     public ReminderProcessingService(
-            ReminderRepository reminderRepository) {
+            ReminderRepository reminderRepository,
+            NotificationService notificationService) {
 
         this.reminderRepository = reminderRepository;
+
+        this.notificationService = notificationService;
     }
 
     public int processDueReminders(
@@ -33,11 +39,10 @@ public class ReminderProcessingService {
 
         while (processedCount < maxReminders) {
 
-            Reminder reminder =
-                    reminderRepository
-                            .claimNextDueReminder(
-                                    LocalDateTime.now())
-                            .orElse(null);
+            Reminder reminder = reminderRepository
+                    .claimNextDueReminder(
+                            LocalDateTime.now())
+                    .orElse(null);
 
             if (reminder == null) {
                 break;
@@ -56,15 +61,9 @@ public class ReminderProcessingService {
 
         try {
 
-            /*
-             * Phase 5C will perform the real work here:
-             *
-             * notificationService.createNotification(...)
-             * emailService.send(...)
-             *
-             * For this phase we only verify that claiming,
-             * scheduling and lifecycle handling work.
-             */
+            notificationService
+                    .createFromReminder(
+                            reminder);
 
             markCompleted(reminder);
 
@@ -79,8 +78,7 @@ public class ReminderProcessingService {
     private void markCompleted(
             Reminder reminder) {
 
-        LocalDateTime now =
-                LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
 
         reminder.setStatus(
                 ReminderStatus.COMPLETED);
@@ -95,8 +93,7 @@ public class ReminderProcessingService {
     private void releaseForRetry(
             Reminder reminder) {
 
-        LocalDateTime now =
-                LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
 
         reminder.setStatus(
                 ReminderStatus.PENDING);
