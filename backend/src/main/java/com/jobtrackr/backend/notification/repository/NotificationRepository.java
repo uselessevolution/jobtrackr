@@ -9,19 +9,20 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import com.jobtrackr.backend.notification.model.Notification;
 
 public interface NotificationRepository
-        extends MongoRepository<Notification, String> {
+                extends MongoRepository<Notification, String>,
+                NotificationRepositoryCustom {
 
-    Page<Notification> findAllByUserId(
-            String userId,
-            Pageable pageable);
+        Page<Notification> findAllByUserId(
+                        String userId,
+                        Pageable pageable);
 
-    Optional<Notification> findByIdAndUserId(
-            String id,
-            String userId);
+        Optional<Notification> findByIdAndUserId(
+                        String id,
+                        String userId);
 
-    boolean existsByReminderId(
-            String reminderId);
+        boolean existsByReminderId(
+                        String reminderId);
 
-    long countByUserIdAndReadFalse(
-            String userId);
+        long countByUserIdAndReadFalse(
+                        String userId);
 }

@@ -124,5 +124,12 @@ public class MongoIndexConfig {
                                                 .unique()
                                                 .named(
                                                                 "idx_notification_reminder_unique"));
+                indexOperations.createIndex(
+                                new Index()
+                                                .on("userId", Direction.ASC)
+                                                .on("type", Direction.ASC)
+                                                .on("createdAt", Direction.DESC)
+                                                .named(
+                                                                "idx_notification_user_type_created_at"));
         }
 }
