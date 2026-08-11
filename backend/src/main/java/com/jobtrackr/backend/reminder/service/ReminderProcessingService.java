@@ -9,20 +9,24 @@ import com.jobtrackr.backend.reminder.model.Reminder;
 import com.jobtrackr.backend.reminder.model.ReminderStatus;
 import com.jobtrackr.backend.reminder.repository.ReminderRepository;
 import com.jobtrackr.backend.notification.service.NotificationService;
+import com.jobtrackr.backend.reminder.model.ReminderChannel;
 
 @Service
 public class ReminderProcessingService {
-
+    private final ReminderEmailService reminderEmailService;
     private final ReminderRepository reminderRepository;
     private final NotificationService notificationService;
 
     public ReminderProcessingService(
             ReminderRepository reminderRepository,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            ReminderEmailService reminderEmailService) {
 
         this.reminderRepository = reminderRepository;
 
         this.notificationService = notificationService;
+
+        this.reminderEmailService = reminderEmailService;
     }
 
     public int processDueReminders(
@@ -61,9 +65,7 @@ public class ReminderProcessingService {
 
         try {
 
-            notificationService
-                    .createFromReminder(
-                            reminder);
+            processChannels(reminder);
 
             markCompleted(reminder);
 
@@ -106,5 +108,36 @@ public class ReminderProcessingService {
         reminder.setUpdatedAt(now);
 
         reminderRepository.save(reminder);
+    }
+
+    private void processChannels(
+            Reminder reminder) {
+
+        if (reminder.getChannels() == null
+                || reminder.getChannels().isEmpty()) {
+
+            throw new IllegalStateException(
+                    "Reminder has no delivery channels: "
+                            + reminder.getId());
+        }
+
+        if (reminder.getChannels()
+                .contains(ReminderChannel.IN_APP)) {
+
+            notificationService
+                    .createFromReminder(reminder);
+        }
+
+        if (reminder.getChannels()
+                .contains(ReminderChannel.EMAIL)) {
+
+            boolean sent = reminderEmailService
+                    .sendReminderEmail(reminder);
+
+            if (!sent) {
+                throw new IllegalStateException(
+                        "Email delivery is disabled");
+            }
+        }
     }
 }
