@@ -15,188 +15,183 @@ import com.jobtrackr.backend.user.repository.UserRepository;
 @Service
 public class ReminderEmailService {
 
-    private final EmailService emailService;
-    private final UserRepository userRepository;
-    private final EmailDeliveryRepository deliveryRepository;
+        private final EmailService emailService;
+        private final UserRepository userRepository;
+        private final EmailDeliveryRepository deliveryRepository;
 
-    public ReminderEmailService(
-            EmailService emailService,
-            UserRepository userRepository,
-            EmailDeliveryRepository deliveryRepository) {
+        public ReminderEmailService(
+                        EmailService emailService,
+                        UserRepository userRepository,
+                        EmailDeliveryRepository deliveryRepository) {
 
-        this.emailService = emailService;
-        this.userRepository = userRepository;
-        this.deliveryRepository = deliveryRepository;
-    }
-
-    public void sendReminderEmail(
-            Reminder reminder) {
-
-        boolean alreadySent =
-                deliveryRepository
-                        .existsByReminderIdAndStatus(
-                                reminder.getId(),
-                                EmailDeliveryStatus.SENT);
-
-        if (alreadySent) {
-            return;
+                this.emailService = emailService;
+                this.userRepository = userRepository;
+                this.deliveryRepository = deliveryRepository;
         }
 
-        User user = userRepository
-                .findById(reminder.getUserId())
-                .orElseThrow(() ->
-                        new IllegalStateException(
-                                "User not found for reminder: "
-                                        + reminder.getId()));
+        public void sendReminderEmail(
+                        Reminder reminder) {
 
-        String subject =
-                buildSubject(reminder);
+                boolean alreadySent = deliveryRepository
+                                .existsByReminderIdAndStatus(
+                                                reminder.getId(),
+                                                EmailDeliveryStatus.SENT);
 
-        String body =
-                buildBody(reminder);
+                if (alreadySent) {
+                        return;
+                }
 
-        int attemptNumber =
-                reminder.getAttempts() + 1;
+                User user = userRepository
+                                .findById(reminder.getUserId())
+                                .orElseThrow(() -> new IllegalStateException(
+                                                "User not found for reminder: "
+                                                                + reminder.getId()));
 
-        EmailDelivery delivery =
-                createDelivery(
-                        reminder,
-                        user.getEmail(),
-                        subject,
-                        attemptNumber);
+                String subject = buildSubject(reminder);
 
-        deliveryRepository.save(delivery);
+                String body = buildBody(reminder);
 
-        try {
+                int attemptNumber = Math.toIntExact(
+                                deliveryRepository
+                                                .countByReminderId(
+                                                                reminder.getId())
+                                                + 1);
 
-            boolean sent =
-                    emailService.sendPlainText(
-                            user.getEmail(),
-                            subject,
-                            body);
+                EmailDelivery delivery = createDelivery(
+                                reminder,
+                                user.getEmail(),
+                                subject,
+                                attemptNumber);
 
-            if (!sent) {
-                throw new IllegalStateException(
-                        "Email delivery is disabled");
-            }
+                deliveryRepository.save(delivery);
 
-            delivery.setStatus(
-                    EmailDeliveryStatus.SENT);
+                try {
 
-            delivery.setSentAt(
-                    LocalDateTime.now());
+                        boolean sent = emailService.sendPlainText(
+                                        user.getEmail(),
+                                        subject,
+                                        body);
 
-            delivery.setErrorMessage(null);
+                        if (!sent) {
+                                throw new IllegalStateException(
+                                                "Email delivery is disabled");
+                        }
 
-            deliveryRepository.save(delivery);
+                        delivery.setStatus(
+                                        EmailDeliveryStatus.SENT);
 
-        } catch (RuntimeException exception) {
+                        delivery.setSentAt(
+                                        LocalDateTime.now());
 
-            delivery.setStatus(
-                    EmailDeliveryStatus.FAILED);
+                        delivery.setErrorMessage(null);
 
-            delivery.setErrorMessage(
-                    buildErrorMessage(exception));
+                        deliveryRepository.save(delivery);
 
-            deliveryRepository.save(delivery);
+                } catch (RuntimeException exception) {
 
-            throw exception;
-        }
-    }
+                        delivery.setStatus(
+                                        EmailDeliveryStatus.FAILED);
 
-    private EmailDelivery createDelivery(
-            Reminder reminder,
-            String recipient,
-            String subject,
-            int attemptNumber) {
+                        delivery.setErrorMessage(
+                                        buildErrorMessage(exception));
 
-        EmailDelivery delivery =
-                new EmailDelivery();
+                        deliveryRepository.save(delivery);
 
-        delivery.setReminderId(
-                reminder.getId());
-
-        delivery.setUserId(
-                reminder.getUserId());
-
-        delivery.setRecipient(
-                recipient);
-
-        delivery.setSubject(
-                subject);
-
-        delivery.setStatus(
-                EmailDeliveryStatus.PENDING);
-
-        delivery.setAttemptNumber(
-                attemptNumber);
-
-        delivery.setErrorMessage(null);
-
-        delivery.setCreatedAt(
-                LocalDateTime.now());
-
-        delivery.setSentAt(null);
-
-        return delivery;
-    }
-
-    private String buildSubject(
-            Reminder reminder) {
-
-        return switch (reminder.getType()) {
-
-            case INTERVIEW ->
-                    "JobTrackr: Interview reminder";
-
-            case FOLLOW_UP ->
-                    "JobTrackr: Follow-up reminder";
-
-            case APPLICATION_DEADLINE ->
-                    "JobTrackr: Application deadline reminder";
-        };
-    }
-
-    private String buildBody(
-            Reminder reminder) {
-
-        if (reminder.getMessage() != null
-                && !reminder.getMessage().isBlank()) {
-
-            return reminder.getMessage();
+                        throw exception;
+                }
         }
 
-        return switch (reminder.getType()) {
+        private EmailDelivery createDelivery(
+                        Reminder reminder,
+                        String recipient,
+                        String subject,
+                        int attemptNumber) {
 
-            case INTERVIEW ->
-                    "You have an upcoming interview reminder in JobTrackr.";
+                EmailDelivery delivery = new EmailDelivery();
 
-            case FOLLOW_UP ->
-                    "It is time to follow up on your job application.";
+                delivery.setReminderId(
+                                reminder.getId());
 
-            case APPLICATION_DEADLINE ->
-                    "A job application deadline is approaching.";
-        };
-    }
+                delivery.setUserId(
+                                reminder.getUserId());
 
-    private String buildErrorMessage(
-            RuntimeException exception) {
+                delivery.setRecipient(
+                                recipient);
 
-        String message =
-                exception.getMessage();
+                delivery.setSubject(
+                                subject);
 
-        if (message == null
-                || message.isBlank()) {
+                delivery.setStatus(
+                                EmailDeliveryStatus.PENDING);
 
-            return exception
-                    .getClass()
-                    .getSimpleName();
+                delivery.setAttemptNumber(
+                                attemptNumber);
+
+                delivery.setErrorMessage(null);
+
+                delivery.setCreatedAt(
+                                LocalDateTime.now());
+
+                delivery.setSentAt(null);
+
+                return delivery;
         }
 
-        if (message.length() > 1000) {
-            return message.substring(0, 1000);
+        private String buildSubject(
+                        Reminder reminder) {
+
+                return switch (reminder.getType()) {
+
+                        case INTERVIEW ->
+                                "JobTrackr: Interview reminder";
+
+                        case FOLLOW_UP ->
+                                "JobTrackr: Follow-up reminder";
+
+                        case APPLICATION_DEADLINE ->
+                                "JobTrackr: Application deadline reminder";
+                };
         }
 
-        return message;
-    }
+        private String buildBody(
+                        Reminder reminder) {
+
+                if (reminder.getMessage() != null
+                                && !reminder.getMessage().isBlank()) {
+
+                        return reminder.getMessage();
+                }
+
+                return switch (reminder.getType()) {
+
+                        case INTERVIEW ->
+                                "You have an upcoming interview reminder in JobTrackr.";
+
+                        case FOLLOW_UP ->
+                                "It is time to follow up on your job application.";
+
+                        case APPLICATION_DEADLINE ->
+                                "A job application deadline is approaching.";
+                };
+        }
+
+        private String buildErrorMessage(
+                        RuntimeException exception) {
+
+                String message = exception.getMessage();
+
+                if (message == null
+                                || message.isBlank()) {
+
+                        return exception
+                                        .getClass()
+                                        .getSimpleName();
+                }
+
+                if (message.length() > 1000) {
+                        return message.substring(0, 1000);
+                }
+
+                return message;
+        }
 }

@@ -16,4 +16,7 @@ public interface EmailDeliveryRepository
 
     List<EmailDelivery> findAllByReminderIdOrderByAttemptNumberAsc(
             String reminderId);
+
+    long countByReminderId(
+            String reminderId);
 }

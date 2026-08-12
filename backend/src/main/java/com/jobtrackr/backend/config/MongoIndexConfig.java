@@ -153,5 +153,11 @@ public class MongoIndexConfig {
                                                 .on("createdAt", Direction.DESC)
                                                 .named(
                                                                 "idx_email_delivery_user_created_at"));
+                indexOperations.createIndex(
+                                new Index()
+                                                .on("reminderId", Direction.ASC)
+                                                .on("attemptNumber", Direction.ASC)
+                                                .named(
+                                                                "idx_email_delivery_reminder_attempt"));
         }
 }
