@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import com.jobtrackr.backend.application.model.JobApplication;
 import com.jobtrackr.backend.reminder.model.Reminder;
 import com.jobtrackr.backend.notification.model.Notification;
+import com.jobtrackr.backend.email.model.EmailDelivery;
 
 @Component
 public class MongoIndexConfig {
@@ -76,6 +77,7 @@ public class MongoIndexConfig {
 
                 createReminderIndexes();
                 createNotificationIndexes();
+                createEmailDeliveryIndexes();
         }
 
         private void createReminderIndexes() {
@@ -131,5 +133,25 @@ public class MongoIndexConfig {
                                                 .on("createdAt", Direction.DESC)
                                                 .named(
                                                                 "idx_notification_user_type_created_at"));
+        }
+
+        private void createEmailDeliveryIndexes() {
+
+                IndexOperations indexOperations = mongoTemplate.indexOps(
+                                EmailDelivery.class);
+
+                indexOperations.createIndex(
+                                new Index()
+                                                .on("reminderId", Direction.ASC)
+                                                .on("status", Direction.ASC)
+                                                .named(
+                                                                "idx_email_delivery_reminder_status"));
+
+                indexOperations.createIndex(
+                                new Index()
+                                                .on("userId", Direction.ASC)
+                                                .on("createdAt", Direction.DESC)
+                                                .named(
+                                                                "idx_email_delivery_user_created_at"));
         }
 }

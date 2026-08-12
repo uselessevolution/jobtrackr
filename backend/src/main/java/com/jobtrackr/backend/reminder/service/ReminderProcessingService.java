@@ -11,22 +11,28 @@ import com.jobtrackr.backend.reminder.repository.ReminderRepository;
 import com.jobtrackr.backend.notification.service.NotificationService;
 import com.jobtrackr.backend.reminder.model.ReminderChannel;
 
+import org.springframework.beans.factory.annotation.Value;
+
 @Service
 public class ReminderProcessingService {
     private final ReminderEmailService reminderEmailService;
     private final ReminderRepository reminderRepository;
     private final NotificationService notificationService;
+    private final int maxAttempts;
 
     public ReminderProcessingService(
             ReminderRepository reminderRepository,
             NotificationService notificationService,
-            ReminderEmailService reminderEmailService) {
+            ReminderEmailService reminderEmailService,
+            @Value("${jobtrackr.reminder.max-attempts:3}") int maxAttempts) {
 
         this.reminderRepository = reminderRepository;
 
         this.notificationService = notificationService;
 
         this.reminderEmailService = reminderEmailService;
+
+        this.maxAttempts = maxAttempts;
     }
 
     public int processDueReminders(
@@ -71,9 +77,7 @@ public class ReminderProcessingService {
 
         } catch (RuntimeException exception) {
 
-            releaseForRetry(reminder);
-
-            throw exception;
+            handleProcessingFailure(reminder);
         }
     }
 
@@ -92,23 +96,34 @@ public class ReminderProcessingService {
         reminderRepository.save(reminder);
     }
 
-    private void releaseForRetry(
+    private void handleProcessingFailure(
             Reminder reminder) {
 
         LocalDateTime now = LocalDateTime.now();
 
-        reminder.setStatus(
-                ReminderStatus.PENDING);
+        int newAttempts = reminder.getAttempts() + 1;
+
+        reminder.setAttempts(
+                newAttempts);
 
         reminder.setProcessingStartedAt(null);
 
-        reminder.setAttempts(
-                reminder.getAttempts() + 1);
-
         reminder.setUpdatedAt(now);
+
+        if (newAttempts >= maxAttempts) {
+
+            reminder.setStatus(
+                    ReminderStatus.FAILED);
+
+        } else {
+
+            reminder.setStatus(
+                    ReminderStatus.PENDING);
+        }
 
         reminderRepository.save(reminder);
     }
+
 
     private void processChannels(
             Reminder reminder) {
@@ -131,12 +146,11 @@ public class ReminderProcessingService {
         if (reminder.getChannels()
                 .contains(ReminderChannel.EMAIL)) {
 
-            boolean sent = reminderEmailService
-                    .sendReminderEmail(reminder);
+            if (reminder.getChannels()
+                    .contains(ReminderChannel.EMAIL)) {
 
-            if (!sent) {
-                throw new IllegalStateException(
-                        "Email delivery is disabled");
+                reminderEmailService
+                        .sendReminderEmail(reminder);
             }
         }
     }
