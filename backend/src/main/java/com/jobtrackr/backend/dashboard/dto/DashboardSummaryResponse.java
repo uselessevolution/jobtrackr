@@ -3,6 +3,7 @@ package com.jobtrackr.backend.dashboard.dto;
 import java.util.Map;
 
 import com.jobtrackr.backend.application.model.ApplicationStatus;
+import java.util.List;
 
 public class DashboardSummaryResponse {
 
@@ -15,6 +16,9 @@ public class DashboardSummaryResponse {
     private long unreadNotifications;
 
     private long upcomingInterviews;
+    private List<UpcomingInterviewResponse> nextInterviews;
+
+    private List<UpcomingReminderResponse> nextReminders;
 
     public DashboardSummaryResponse() {
     }
@@ -24,7 +28,9 @@ public class DashboardSummaryResponse {
             Map<ApplicationStatus, Long> applicationStatusCounts,
             long pendingReminders,
             long unreadNotifications,
-            long upcomingInterviews) {
+            long upcomingInterviews,
+            List<UpcomingInterviewResponse> nextInterviews,
+            List<UpcomingReminderResponse> nextReminders) {
 
         this.totalApplications = totalApplications;
 
@@ -35,6 +41,10 @@ public class DashboardSummaryResponse {
         this.unreadNotifications = unreadNotifications;
 
         this.upcomingInterviews = upcomingInterviews;
+
+        this.nextInterviews = nextInterviews;
+
+        this.nextReminders = nextReminders;
     }
 
     public long getTotalApplications() {
@@ -86,5 +96,27 @@ public class DashboardSummaryResponse {
             long upcomingInterviews) {
 
         this.upcomingInterviews = upcomingInterviews;
+    }
+
+    public List<UpcomingInterviewResponse> getNextInterviews() {
+
+        return nextInterviews;
+    }
+
+    public void setNextInterviews(
+            List<UpcomingInterviewResponse> nextInterviews) {
+
+        this.nextInterviews = nextInterviews;
+    }
+
+    public List<UpcomingReminderResponse> getNextReminders() {
+
+        return nextReminders;
+    }
+
+    public void setNextReminders(
+            List<UpcomingReminderResponse> nextReminders) {
+
+        this.nextReminders = nextReminders;
     }
 }

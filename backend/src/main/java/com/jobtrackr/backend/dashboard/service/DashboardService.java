@@ -13,6 +13,14 @@ import com.jobtrackr.backend.notification.repository.NotificationRepository;
 import com.jobtrackr.backend.reminder.model.ReminderStatus;
 import com.jobtrackr.backend.reminder.repository.ReminderRepository;
 import com.jobtrackr.backend.user.service.CurrentUserService;
+import java.util.List;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
+import com.jobtrackr.backend.dashboard.dto.UpcomingInterviewResponse;
+import com.jobtrackr.backend.dashboard.dto.UpcomingReminderResponse;
+import com.jobtrackr.backend.reminder.model.Reminder;
 
 @Service
 public class DashboardService {
@@ -46,12 +54,15 @@ public class DashboardService {
         String currentUserId = currentUserService
                 .getCurrentUserId();
 
+        LocalDateTime now = LocalDateTime.now();
+
         long totalApplications = applicationRepository
                 .countByUserId(
                         currentUserId);
 
-        Map<ApplicationStatus, Long> statusCounts = buildStatusCounts(
-                currentUserId);
+        Map<ApplicationStatus, Long> statusCounts = dashboardQueryService
+                .getApplicationStatusCounts(
+                        currentUserId);
 
         long pendingReminders = reminderRepository
                 .countByUserIdAndStatus(
@@ -65,34 +76,73 @@ public class DashboardService {
         long upcomingInterviews = dashboardQueryService
                 .countUpcomingInterviews(
                         currentUserId,
-                        LocalDateTime.now());
+                        now);
+
+        List<UpcomingInterviewResponse> nextInterviews = dashboardQueryService
+                .findUpcomingInterviews(
+                        currentUserId,
+                        now,
+                        5);
+
+        List<UpcomingReminderResponse> nextReminders = findUpcomingReminders(
+                currentUserId,
+                now,
+                5);
 
         return new DashboardSummaryResponse(
                 totalApplications,
                 statusCounts,
                 pendingReminders,
                 unreadNotifications,
-                upcomingInterviews);
+                upcomingInterviews,
+                nextInterviews,
+                nextReminders);
     }
 
-    private Map<ApplicationStatus, Long> buildStatusCounts(
-            String userId) {
+    private List<UpcomingReminderResponse> findUpcomingReminders(
+            String userId,
+            LocalDateTime now,
+            int limit) {
 
-        Map<ApplicationStatus, Long> counts = new EnumMap<>(
-                ApplicationStatus.class);
+        PageRequest pageable = PageRequest.of(
+                0,
+                limit,
+                Sort.by(
+                        "scheduledAt")
+                        .ascending());
 
-        for (ApplicationStatus status : ApplicationStatus.values()) {
-
-            long count = applicationRepository
-                    .countByUserIdAndStatus(
-                            userId,
-                            status);
-
-            counts.put(
-                    status,
-                    count);
-        }
-
-        return counts;
+        return reminderRepository
+                .findByUserIdAndStatusAndScheduledAtGreaterThanEqual(
+                        userId,
+                        ReminderStatus.PENDING,
+                        now,
+                        pageable)
+                .stream()
+                .map(this::toUpcomingReminderResponse)
+                .toList();
     }
+
+    private UpcomingReminderResponse toUpcomingReminderResponse(
+            Reminder reminder) {
+
+        UpcomingReminderResponse response = new UpcomingReminderResponse();
+
+        response.setId(
+                reminder.getId());
+
+        response.setApplicationId(
+                reminder.getApplicationId());
+
+        response.setType(
+                reminder.getType());
+
+        response.setScheduledAt(
+                reminder.getScheduledAt());
+
+        response.setMessage(
+                reminder.getMessage());
+
+        return response;
+    }
+
 }

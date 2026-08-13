@@ -31,4 +31,10 @@ public interface ReminderRepository
         long countByUserIdAndStatus(
                         String userId,
                         ReminderStatus status);
+
+        List<Reminder> findByUserIdAndStatusAndScheduledAtGreaterThanEqual(
+                        String userId,
+                        ReminderStatus status,
+                        LocalDateTime scheduledAt,
+                        Pageable pageable);
 }

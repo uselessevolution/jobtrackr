@@ -98,6 +98,13 @@ public class MongoIndexConfig {
                                                 .on(SCHEDULED_AT, Direction.ASC)
                                                 .named(
                                                                 "idx_reminder_status_scheduled_at"));
+                indexOperations.createIndex(
+                                new Index()
+                                                .on("userId", Direction.ASC)
+                                                .on("status", Direction.ASC)
+                                                .on("scheduledAt", Direction.ASC)
+                                                .named(
+                                                                "idx_reminder_user_status_scheduled_at"));
         }
 
         private void createNotificationIndexes() {
@@ -160,4 +167,5 @@ public class MongoIndexConfig {
                                                 .named(
                                                                 "idx_email_delivery_reminder_attempt"));
         }
+
 }
