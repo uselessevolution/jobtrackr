@@ -27,4 +27,8 @@ public interface ReminderRepository
                         ReminderStatus status,
                         LocalDateTime scheduledAt,
                         Pageable pageable);
+
+        long countByUserIdAndStatus(
+                        String userId,
+                        ReminderStatus status);
 }
