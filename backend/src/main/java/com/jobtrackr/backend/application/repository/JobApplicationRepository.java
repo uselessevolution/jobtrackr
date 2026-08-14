@@ -8,7 +8,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import com.jobtrackr.backend.application.model.JobApplication;
 import com.jobtrackr.backend.application.model.ApplicationStatus;
-
+import java.time.LocalDate;
+import java.util.List;
 public interface JobApplicationRepository
                 extends MongoRepository<JobApplication, String>,
                 JobApplicationRepositoryCustom {
@@ -16,6 +17,13 @@ public interface JobApplicationRepository
         Page<JobApplication> findAllByUserId(
                         String userId,
                         Pageable pageable);
+
+        List<JobApplication> findAllByUserId(String userId);
+
+        List<JobApplication> findAllByUserIdAndAppliedDateBetween(
+                        String userId,
+                        LocalDate from,
+                        LocalDate to);
 
         Optional<JobApplication> findByIdAndUserId(
                         String id,
