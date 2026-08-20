@@ -14,6 +14,9 @@ import com.jobtrackr.backend.dashboard.dto.DailyCountResponse;
 import com.jobtrackr.backend.user.service.CurrentUserService;
 import com.jobtrackr.backend.application.model.Interview;
 import com.jobtrackr.backend.dashboard.dto.DashboardAnalyticsResponse;
+import com.jobtrackr.backend.application.model.ApplicationStatus;
+import com.jobtrackr.backend.application.model.StatusHistory;
+import com.jobtrackr.backend.dashboard.dto.DashboardFunnelResponse;
 
 @Service
 public class DashboardAnalyticsService {
@@ -31,6 +34,39 @@ public class DashboardAnalyticsService {
 
         this.jobApplicationRepository = jobApplicationRepository;
         this.currentUserService = currentUserService;
+    }
+
+    public DashboardAnalyticsResponse getAnalytics(Integer days) {
+
+        int resolvedDays = resolveDays(days);
+
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(resolvedDays - 1L);
+
+        List<DailyCountResponse> applicationTrend = getApplicationTrendForRange(
+                startDate,
+                endDate);
+
+        List<DailyCountResponse> interviewTrend = getInterviewTrendForRange(
+                startDate,
+                endDate);
+
+        long applicationsInPeriod = applicationTrend.stream()
+                .mapToLong(DailyCountResponse::getCount)
+                .sum();
+
+        long interviewsInPeriod = interviewTrend.stream()
+                .mapToLong(DailyCountResponse::getCount)
+                .sum();
+
+        return new DashboardAnalyticsResponse(
+                resolvedDays,
+                startDate,
+                endDate,
+                applicationsInPeriod,
+                interviewsInPeriod,
+                applicationTrend,
+                interviewTrend);
     }
 
     private List<DailyCountResponse> getApplicationTrendForRange(
@@ -102,37 +138,55 @@ public class DashboardAnalyticsService {
         return toDailyCountResponses(counts);
     }
 
-    public DashboardAnalyticsResponse getAnalytics(Integer days) {
+    public DashboardFunnelResponse getFunnelAnalytics() {
 
-        int resolvedDays = resolveDays(days);
+        String currentUserId = currentUserService.getCurrentUserId();
 
-        LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(resolvedDays - 1L);
+        List<JobApplication> applications = jobApplicationRepository
+                .findAllByUserId(currentUserId);
 
-        List<DailyCountResponse> applicationTrend = getApplicationTrendForRange(
-                startDate,
-                endDate);
+        long applied = applications.stream()
+                .filter(this::hasApplied)
+                .count();
 
-        List<DailyCountResponse> interviewTrend = getInterviewTrendForRange(
-                startDate,
-                endDate);
+        long interviewed = applications.stream()
+                .filter(application -> hasReachedStage(
+                        application,
+                        ApplicationStatus.INTERVIEWING))
+                .count();
 
-        long applicationsInPeriod = applicationTrend.stream()
-                .mapToLong(DailyCountResponse::getCount)
-                .sum();
+        long offered = applications.stream()
+                .filter(application -> hasReachedStage(
+                        application,
+                        ApplicationStatus.OFFER))
+                .count();
 
-        long interviewsInPeriod = interviewTrend.stream()
-                .mapToLong(DailyCountResponse::getCount)
-                .sum();
+        long accepted = applications.stream()
+                .filter(application -> hasReachedStage(
+                        application,
+                        ApplicationStatus.ACCEPTED))
+                .count();
 
-        return new DashboardAnalyticsResponse(
-                resolvedDays,
-                startDate,
-                endDate,
-                applicationsInPeriod,
-                interviewsInPeriod,
-                applicationTrend,
-                interviewTrend);
+        double interviewRate = percentage(interviewed, applied);
+
+        double offerRate = percentage(offered, applied);
+
+        double acceptedRate = percentage(accepted, applied);
+
+        double interviewToOfferRate = percentage(offered, interviewed);
+
+        double offerToAcceptedRate = percentage(accepted, offered);
+
+        return new DashboardFunnelResponse(
+                applied,
+                interviewed,
+                offered,
+                accepted,
+                interviewRate,
+                offerRate,
+                acceptedRate,
+                interviewToOfferRate,
+                offerToAcceptedRate);
     }
 
     private int resolveDays(Integer days) {
@@ -179,6 +233,94 @@ public class DashboardAnalyticsService {
         }
 
         return responses;
+    }
+
+    private boolean hasReachedStage(
+            JobApplication application,
+            ApplicationStatus targetStatus) {
+
+        if (isStatusAtOrBeyondMilestone(
+                application.getStatus(),
+                targetStatus)) {
+
+            return true;
+        }
+
+        List<StatusHistory> statusHistory = application.getStatusHistory();
+
+        if (statusHistory == null
+                || statusHistory.isEmpty()) {
+
+            return false;
+        }
+
+        return statusHistory.stream()
+                .anyMatch(history -> isStatusAtOrBeyondMilestone(
+                        history.getFromStatus(),
+                        targetStatus)
+                        || isStatusAtOrBeyondMilestone(
+                                history.getToStatus(),
+                                targetStatus));
+    }
+
+    private boolean isStatusAtOrBeyondMilestone(
+            ApplicationStatus status,
+            ApplicationStatus targetStatus) {
+
+        if (status == null) {
+            return false;
+        }
+
+        return switch (targetStatus) {
+
+            case APPLIED ->
+                status == ApplicationStatus.APPLIED
+                        || status == ApplicationStatus.OA_RECEIVED
+                        || status == ApplicationStatus.PHONE_SCREEN
+                        || status == ApplicationStatus.INTERVIEWING
+                        || status == ApplicationStatus.OFFER
+                        || status == ApplicationStatus.ACCEPTED;
+
+            case INTERVIEWING ->
+                status == ApplicationStatus.INTERVIEWING
+                        || status == ApplicationStatus.OFFER
+                        || status == ApplicationStatus.ACCEPTED;
+
+            case OFFER ->
+                status == ApplicationStatus.OFFER
+                        || status == ApplicationStatus.ACCEPTED;
+
+            case ACCEPTED ->
+                status == ApplicationStatus.ACCEPTED;
+
+            default -> false;
+        };
+    }
+
+    private boolean hasApplied(
+            JobApplication application) {
+
+        if (application.getAppliedDate() != null) {
+            return true;
+        }
+
+        return hasReachedStage(
+                application,
+                ApplicationStatus.APPLIED);
+    }
+
+    private double percentage(
+            long numerator,
+            long denominator) {
+
+        if (denominator == 0) {
+            return 0.0;
+        }
+
+        return Math.round(
+                ((double) numerator / denominator)
+                        * 10000.0)
+                / 100.0;
     }
 
 }
