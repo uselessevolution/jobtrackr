@@ -2,6 +2,7 @@ import apiClient from "./apiClient";
 import type {
     ApplicationPriority,
     ApplicationStatus,
+    CreateApplicationRequest,
     JobApplication,
     PagedResponse,
 } from "../types/application";
@@ -46,6 +47,18 @@ export async function getApplications(
                     params.direction ?? "desc",
             },
         });
+
+    return response.data;
+
+}
+export async function createApplication(
+    request: CreateApplicationRequest,
+): Promise<JobApplication> {
+    const response =
+        await apiClient.post<JobApplication>(
+            "/api/applications",
+            request,
+        );
 
     return response.data;
 }

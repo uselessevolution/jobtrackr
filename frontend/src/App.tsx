@@ -3,7 +3,7 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
-
+import CreateApplicationPage from "./pages/CreateApplicationPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -42,7 +42,16 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/applications/new"
+        element={
+          <ProtectedRoute>
+            <CreateApplicationPage />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
+
   );
 }
 

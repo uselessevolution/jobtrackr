@@ -38,3 +38,14 @@ export interface PagedResponse<T> {
     first: boolean;
     last: boolean;
 }
+export interface CreateApplicationRequest {
+    companyName: string;
+    jobTitle: string;
+    location?: string | null;
+    jobUrl?: string | null;
+    status: ApplicationStatus;
+    priority: ApplicationPriority;
+    skills: string[];
+    appliedDate?: string | null;
+    deadline?: string | null;
+}

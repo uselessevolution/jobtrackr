@@ -3,7 +3,7 @@ import {
     useState,
     type FormEvent,
 } from "react";
-
+import { Link } from "react-router-dom";
 import {
     getApplications,
 } from "../api/applicationApi";
@@ -137,7 +137,11 @@ export default function ApplicationsPage() {
     return (
         <main>
             <h1>Applications</h1>
-
+            <p>
+                <Link to="/applications/new">
+                    Create Application
+                </Link>
+            </p>
             <form
                 onSubmit={handleFilterSubmit}
             >
