@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router-dom";
 
 import useAuth from "../auth/useAuth";
-
+import {
+    Link,
+} from "react-router-dom";
 export default function HomePage() {
     const { logout } = useAuth();
     const navigate = useNavigate();
@@ -20,7 +22,11 @@ export default function HomePage() {
             <p>
                 You are authenticated.
             </p>
-
+            <p>
+                <Link to="/applications">
+                    View Applications
+                </Link>
+            </p>
             <button
                 type="button"
                 onClick={handleLogout}
@@ -29,4 +35,5 @@ export default function HomePage() {
             </button>
         </main>
     );
+
 }

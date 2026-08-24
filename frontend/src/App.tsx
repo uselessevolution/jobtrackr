@@ -7,7 +7,7 @@ import {
 import ProtectedRoute from "./auth/ProtectedRoute";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
-
+import ApplicationsPage from "./pages/ApplicationsPage";
 function App() {
   return (
     <Routes>
@@ -32,6 +32,14 @@ function App() {
             to="/"
             replace
           />
+        }
+      />
+      <Route
+        path="/applications"
+        element={
+          <ProtectedRoute>
+            <ApplicationsPage />
+          </ProtectedRoute>
         }
       />
     </Routes>
