@@ -62,3 +62,32 @@ export async function createApplication(
 
     return response.data;
 }
+export async function getApplicationById(
+    id: string,
+): Promise<JobApplication> {
+    const response =
+        await apiClient.get<JobApplication>(
+            `/api/applications/${id}`,
+        );
+
+    return response.data;
+}
+export async function updateApplication(
+    id: string,
+    request: CreateApplicationRequest,
+): Promise<JobApplication> {
+    const response =
+        await apiClient.put<JobApplication>(
+            `/api/applications/${id}`,
+            request,
+        );
+
+    return response.data;
+}
+export async function deleteApplication(
+    id: string,
+): Promise<void> {
+    await apiClient.delete(
+        `/api/applications/${id}`,
+    );
+}

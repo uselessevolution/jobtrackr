@@ -8,6 +8,11 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import ApplicationsPage from "./pages/ApplicationsPage";
+import ApplicationDetailPage
+  from "./pages/ApplicationDetailPage";
+
+import EditApplicationPage
+  from "./pages/EditApplicationPage";
 function App() {
   return (
     <Routes>
@@ -50,7 +55,25 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/applications/:id"
+        element={
+          <ProtectedRoute>
+            <ApplicationDetailPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/applications/:id/edit"
+        element={
+          <ProtectedRoute>
+            <EditApplicationPage />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
+
 
   );
 }

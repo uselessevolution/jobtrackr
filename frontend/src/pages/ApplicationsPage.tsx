@@ -14,7 +14,6 @@ import type {
     JobApplication,
     PagedResponse,
 } from "../types/application";
-
 type SortDirection =
     | "asc"
     | "desc";
@@ -392,10 +391,11 @@ export default function ApplicationsPage() {
                                             </td>
 
                                             <td>
-                                                {
-                                                    application
-                                                        .jobTitle
-                                                }
+                                                <Link
+                                                    to={`/applications/${application.id}`}
+                                                >
+                                                    {application.jobTitle}
+                                                </Link>
                                             </td>
 
                                             <td>
