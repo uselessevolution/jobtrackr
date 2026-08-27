@@ -27,6 +27,11 @@ export default function HomePage() {
                     View Applications
                 </Link>
             </p>
+            <p>
+                <Link to="/dashboard">
+                    View Dashboard
+                </Link>
+            </p>
             <button
                 type="button"
                 onClick={handleLogout}

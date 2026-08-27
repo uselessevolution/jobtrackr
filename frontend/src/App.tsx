@@ -10,7 +10,8 @@ import LoginPage from "./pages/LoginPage";
 import ApplicationsPage from "./pages/ApplicationsPage";
 import ApplicationDetailPage
   from "./pages/ApplicationDetailPage";
-
+import DashboardPage
+  from "./pages/DashboardPage";
 import EditApplicationPage
   from "./pages/EditApplicationPage";
 function App() {
@@ -20,7 +21,14 @@ function App() {
         path="/login"
         element={<LoginPage />}
       />
-
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/"
         element={
