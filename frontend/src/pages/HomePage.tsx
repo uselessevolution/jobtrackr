@@ -32,6 +32,11 @@ export default function HomePage() {
                     View Dashboard
                 </Link>
             </p>
+            <p>
+                <Link to="/reminders">
+                    View Reminders
+                </Link>
+            </p>
             <button
                 type="button"
                 onClick={handleLogout}

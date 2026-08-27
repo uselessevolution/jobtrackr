@@ -1,3 +1,4 @@
+
 export type ApplicationStatus =
     | "SAVED"
     | "APPLIED"
@@ -8,7 +9,25 @@ export type ApplicationStatus =
     | "ACCEPTED"
     | "REJECTED"
     | "WITHDRAWN";
-
+export interface Interview {
+    id: string;
+    type: string;
+    scheduledAt: string;
+    durationMinutes: number | null;
+    location: string | null;
+    meetingLink: string | null;
+    interviewerName: string | null;
+    notes: string | null;
+}
+export interface CreateInterviewRequest {
+    type: string;
+    scheduledAt: string;
+    durationMinutes: number;
+    location?: string | null;
+    meetingLink?: string | null;
+    interviewerName?: string | null;
+    notes?: string | null;
+}
 export type ApplicationPriority =
     | "LOW"
     | "MEDIUM"
@@ -16,6 +35,7 @@ export type ApplicationPriority =
 
 export interface JobApplication {
     id: string;
+    interviews: Interview[];
     companyName: string;
     jobTitle: string;
     location: string | null;

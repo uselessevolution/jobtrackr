@@ -14,6 +14,8 @@ import DashboardPage
   from "./pages/DashboardPage";
 import EditApplicationPage
   from "./pages/EditApplicationPage";
+import RemindersPage
+  from "./pages/RemindersPage";
 function App() {
   return (
     <Routes>
@@ -77,6 +79,14 @@ function App() {
         element={
           <ProtectedRoute>
             <EditApplicationPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reminders"
+        element={
+          <ProtectedRoute>
+            <RemindersPage />
           </ProtectedRoute>
         }
       />

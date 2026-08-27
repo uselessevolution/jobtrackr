@@ -13,6 +13,9 @@ import {
     deleteApplication,
     getApplicationById,
 } from "../api/applicationApi";
+import {
+    createInterview,
+} from "../api/interviewApi";
 
 import type {
     JobApplication,
@@ -37,7 +40,29 @@ export default function ApplicationDetailPage() {
 
     const [error, setError] =
         useState("");
+    const [interviewType, setInterviewType] =
+        useState("HR");
 
+    const [interviewScheduledAt, setInterviewScheduledAt] =
+        useState("");
+
+    const [interviewDuration, setInterviewDuration] =
+        useState("60");
+
+    const [interviewLocation, setInterviewLocation] =
+        useState("");
+
+    const [interviewMeetingLink, setInterviewMeetingLink] =
+        useState("");
+
+    const [interviewerName, setInterviewerName] =
+        useState("");
+
+    const [interviewNotes, setInterviewNotes] =
+        useState("");
+
+    const [isAddingInterview, setIsAddingInterview] =
+        useState(false);
     useEffect(() => {
         async function loadApplication() {
             if (!id) {
@@ -73,7 +98,88 @@ export default function ApplicationDetailPage() {
 
         void loadApplication();
     }, [id]);
+    async function handleAddInterview() {
+        if (!id || !application) {
+            return;
+        }
 
+        if (!interviewScheduledAt) {
+            setError(
+                "Interview date and time are required.",
+            );
+            return;
+        }
+
+        setIsAddingInterview(true);
+        setError("");
+
+        try {
+            const createdInterview =
+                await createInterview(
+                    id,
+                    {
+                        type: interviewType,
+
+                        scheduledAt:
+                            new Date(
+                                interviewScheduledAt,
+                            ).toISOString(),
+
+                        durationMinutes:
+                            Number(interviewDuration),
+
+                        location:
+                            interviewLocation.trim()
+                            || null,
+
+                        meetingLink:
+                            interviewMeetingLink.trim()
+                            || null,
+
+                        interviewerName:
+                            interviewerName.trim()
+                            || null,
+
+                        notes:
+                            interviewNotes.trim()
+                            || null,
+                    },
+                );
+
+            setApplication({
+                ...application,
+
+                interviews: [
+                    ...application.interviews,
+                    createdInterview,
+                ],
+            });
+
+            setInterviewScheduledAt("");
+            setInterviewDuration("60");
+            setInterviewLocation("");
+            setInterviewMeetingLink("");
+            setInterviewerName("");
+            setInterviewNotes("");
+        } catch (caughtError) {
+            if (
+                axios.isAxiosError<ApiErrorResponse>(
+                    caughtError,
+                )
+            ) {
+                setError(
+                    caughtError.response?.data?.message
+                    ?? "Failed to add interview.",
+                );
+            } else {
+                setError(
+                    "Failed to add interview.",
+                );
+            }
+        } finally {
+            setIsAddingInterview(false);
+        }
+    }
     async function handleDelete() {
         if (!id) {
             return;
@@ -214,6 +320,189 @@ export default function ApplicationDetailPage() {
                 </p>
             )}
 
+            <section>
+                <h2>Interviews</h2>
+
+                {application.interviews.length === 0 ? (
+                    <p>
+                        No interviews have been added yet.
+                    </p>
+                ) : (
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Scheduled</th>
+                                <th>Duration</th>
+                                <th>Location</th>
+                                <th>Interviewer</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {application.interviews.map((interview) => (
+                                <tr key={interview.id}>
+                                    <td>
+                                        {interview.type}
+                                    </td>
+
+                                    <td>
+                                        {interview.scheduledAt}
+                                    </td>
+
+                                    <td>
+                                        {interview.durationMinutes
+                                            ? `${interview.durationMinutes} min`
+                                            : "—"}
+                                    </td>
+
+                                    <td>
+                                        {interview.location ?? "—"}
+                                    </td>
+
+                                    <td>
+                                        {interview.interviewerName ?? "—"}
+                                    </td>
+                                </tr>
+                            ),
+                            )}
+                        </tbody>
+                    </table>
+                )}
+                <h3>Add Interview</h3>
+
+                <div>
+                    <label htmlFor="interviewType">
+                        Type
+                    </label>
+
+                    <select
+                        id="interviewType"
+                        value={interviewType}
+                        onChange={(event) =>
+                            setInterviewType(
+                                event.target.value,
+                            )
+                        }
+                    >
+                        <option value="HR">
+                            HR
+                        </option>
+                    </select>
+                </div>
+
+                <div>
+                    <label htmlFor="interviewScheduledAt">
+                        Scheduled At
+                    </label>
+
+                    <input
+                        id="interviewScheduledAt"
+                        type="datetime-local"
+                        value={interviewScheduledAt}
+                        onChange={(event) =>
+                            setInterviewScheduledAt(
+                                event.target.value,
+                            )
+                        }
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="interviewDuration">
+                        Duration (minutes)
+                    </label>
+
+                    <input
+                        id="interviewDuration"
+                        type="number"
+                        min="1"
+                        value={interviewDuration}
+                        onChange={(event) =>
+                            setInterviewDuration(
+                                event.target.value,
+                            )
+                        }
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="interviewLocation">
+                        Location
+                    </label>
+
+                    <input
+                        id="interviewLocation"
+                        value={interviewLocation}
+                        onChange={(event) =>
+                            setInterviewLocation(
+                                event.target.value,
+                            )
+                        }
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="interviewMeetingLink">
+                        Meeting Link
+                    </label>
+
+                    <input
+                        id="interviewMeetingLink"
+                        type="url"
+                        value={interviewMeetingLink}
+                        onChange={(event) =>
+                            setInterviewMeetingLink(
+                                event.target.value,
+                            )
+                        }
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="interviewerName">
+                        Interviewer
+                    </label>
+
+                    <input
+                        id="interviewerName"
+                        value={interviewerName}
+                        onChange={(event) =>
+                            setInterviewerName(
+                                event.target.value,
+                            )
+                        }
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="interviewNotes">
+                        Notes
+                    </label>
+
+                    <textarea
+                        id="interviewNotes"
+                        value={interviewNotes}
+                        onChange={(event) =>
+                            setInterviewNotes(
+                                event.target.value,
+                            )
+                        }
+                    />
+                </div>
+
+                <button
+                    type="button"
+                    onClick={handleAddInterview}
+                    disabled={isAddingInterview}
+                >
+                    {isAddingInterview
+                        ? "Adding..."
+                        : "Add Interview"}
+                </button>
+            </section>
+
+
             <p>
                 <Link
                     to={`/applications/${application.id}/edit`}
@@ -221,6 +510,7 @@ export default function ApplicationDetailPage() {
                     Edit Application
                 </Link>
             </p>
+
 
             <button
                 type="button"
