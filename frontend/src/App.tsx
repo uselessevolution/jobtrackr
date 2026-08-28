@@ -3,19 +3,19 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
-import CreateApplicationPage from "./pages/CreateApplicationPage";
+
 import ProtectedRoute from "./auth/ProtectedRoute";
+import AppLayout from "./components/AppLayout";
+
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import ApplicationsPage from "./pages/ApplicationsPage";
-import ApplicationDetailPage
-  from "./pages/ApplicationDetailPage";
-import DashboardPage
-  from "./pages/DashboardPage";
-import EditApplicationPage
-  from "./pages/EditApplicationPage";
-import RemindersPage
-  from "./pages/RemindersPage";
+import CreateApplicationPage from "./pages/CreateApplicationPage";
+import ApplicationDetailPage from "./pages/ApplicationDetailPage";
+import EditApplicationPage from "./pages/EditApplicationPage";
+import DashboardPage from "./pages/DashboardPage";
+import RemindersPage from "./pages/RemindersPage";
+
 function App() {
   return (
     <Routes>
@@ -23,22 +23,49 @@ function App() {
         path="/login"
         element={<LoginPage />}
       />
+
       <Route
-        path="/dashboard"
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <AppLayout />
           </ProtectedRoute>
         }
-      />
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <HomePage />
-          </ProtectedRoute>
-        }
-      />
+      >
+        <Route
+          path="/"
+          element={<HomePage />}
+        />
+
+        <Route
+          path="/dashboard"
+          element={<DashboardPage />}
+        />
+
+        <Route
+          path="/applications"
+          element={<ApplicationsPage />}
+        />
+
+        <Route
+          path="/applications/new"
+          element={<CreateApplicationPage />}
+        />
+
+        <Route
+          path="/applications/:id"
+          element={<ApplicationDetailPage />}
+        />
+
+        <Route
+          path="/applications/:id/edit"
+          element={<EditApplicationPage />}
+        />
+
+        <Route
+          path="/reminders"
+          element={<RemindersPage />}
+        />
+      </Route>
 
       <Route
         path="*"
@@ -49,50 +76,7 @@ function App() {
           />
         }
       />
-      <Route
-        path="/applications"
-        element={
-          <ProtectedRoute>
-            <ApplicationsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/applications/new"
-        element={
-          <ProtectedRoute>
-            <CreateApplicationPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/applications/:id"
-        element={
-          <ProtectedRoute>
-            <ApplicationDetailPage />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/applications/:id/edit"
-        element={
-          <ProtectedRoute>
-            <EditApplicationPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/reminders"
-        element={
-          <ProtectedRoute>
-            <RemindersPage />
-          </ProtectedRoute>
-        }
-      />
     </Routes>
-
-
   );
 }
 

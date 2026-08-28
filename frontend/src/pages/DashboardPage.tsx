@@ -96,7 +96,7 @@ export default function DashboardPage() {
             <section>
                 <h2>Overview</h2>
 
-                <div>
+                <div className="dashboard-grid">
                     <article>
                         <h3>Total Applications</h3>
                         <p>
